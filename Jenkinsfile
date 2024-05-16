@@ -5,30 +5,42 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Pobranie kodu z repozytorium
-                git url: 'https://github.com/JakubWierzchowski/jenkinstest.git', branch: 'main'
+                git url: 'https://github.com/TwojeRepozytorium.git', branch: 'main'
             }
         }
         stage('Install Dependencies') {
             steps {
-                // Instalacja zależności
-                sh 'npm install'
+                // Uruchomienie npm install w kontenerze Node.js
+                script {
+                    docker.image('node:14').inside {
+                        sh 'npm install'
+                    }
+                }
             }
         }
         stage('Build') {
             steps {
-                // Budowanie aplikacji
-                sh 'npm run build'
+                // Uruchomienie build w kontenerze Node.js
+                script {
+                    docker.image('node:14').inside {
+                        sh 'npm run build'
+                    }
+                }
             }
         }
         stage('Test') {
             steps {
-                // Uruchomienie testów
-                sh 'npm test'
+                // Uruchomienie testów w kontenerze Node.js
+                script {
+                    docker.image('node:14').inside {
+                        sh 'npm test'
+                    }
+                }
             }
         }
         stage('Deploy') {
             steps {
-                // Uruchomienie aplikacji
+                // Uruchomienie aplikacji za pomocą docker-compose
                 sh 'docker-compose up -d'
             }
         }
