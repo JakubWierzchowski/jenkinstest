@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+  nodeapp:
+    build: .
+    ports:
+      - "5500:5500"
+    volumes:
+      - .:/usr/src/app
+    command: ["npm", "start"]
+
+volumes:
+  jenkins_home:
