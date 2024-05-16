@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Pobranie kodu z repozytorium
-                git url: 'https://github.com/TwojeRepozytorium.git', branch: 'main'
+                git url: 'https://github.com/JakubWierzchowski/jenkinstest.git', branch: 'main'
             }
         }
         stage('Install Dependencies') {
