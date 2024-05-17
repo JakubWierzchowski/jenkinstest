@@ -1,50 +1,39 @@
 pipeline {
     agent any
-
-    stages {
-        stage('Checkout') {
-            steps {
+    stages{
+        stage("checkout"){
+            steps{
                 checkout scm
             }
         }
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    docker.image('node:14').inside {
-                        sh 'npm install'
-                    }
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                script {
-                    docker.image('node:14').inside {
-                        sh 'npm test'
-                    }
-                }
-            }
-        }
-        stage('Build') {
-            steps {
-                script {
-                    docker.image('node:14').inside {
-                        sh 'npm run build'
-                    }
-                }
-            }
-        }
-    }
 
-    post {
-        always {
-            cleanWs()
+        stage("Test"){
+            steps{
+                sh 'sudo apt install npm'
+                sh 'npm test'
+            }
         }
-        success {
-            echo 'Pipeline zakończony sukcesem!'
+
+        stage("Build"){
+            steps{
+                sh 'npm run build'
+            }
         }
-        failure {
-            echo 'Pipeline zakończony niepowodzeniem.'
+
+        stage("Build Image"){
+            steps{
+                sh 'docker build -t my-node-app:1.0 .'
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker_cred', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
+                    sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
+                    sh 'docker tag my-node-app:1.0 bashidkk/my-node-app:1.0'
+                    sh 'docker push bashidkk/my-node-app:1.0'
+                    sh 'docker logout'
+                }
+            }
         }
     }
 }
