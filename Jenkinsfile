@@ -1,36 +1,39 @@
-node {
-    def app
-
-    stage('Clone repository') {
-        /* Let's make sure we have the repository cloned to our workspace */
-
-        checkout scm
-    }
-
-    stage('Build image') {
-        /* This builds the actual image; synonymous to
-         * docker build on the command line */
-
-        app = docker.build("releaseworks/hellonode")
-    }
-
-    stage('Test image') {
-        /* Ideally, we would run a test framework against our image.
-         * For this example, we're using a Volkswagen-type approach ;-) */
-
-        app.inside {
-            sh 'echo "Tests passed"'
+pipeline {
+    agent any
+    stages{
+        stage("checkout"){
+            steps{
+                checkout scm
+            }
         }
-    }
 
-    stage('Push image') {
-        /* Finally, we'll push the image with two tags:
-         * First, the incremental build number from Jenkins
-         * Second, the 'latest' tag.
-         * Pushing multiple tags is cheap, as all the layers are reused. */
-        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-            app.push("${env.BUILD_NUMBER}")
-            app.push("latest")
+        stage("Test"){
+            steps{
+                sh 'sudo apt install npm'
+                sh 'npm test'
+            }
+        }
+
+        stage("Build"){
+            steps{
+                sh 'npm run build'
+            }
+        }
+
+        stage("Build Image"){
+            steps{
+                sh 'docker build -t my-node-app:1.0 .'
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker_cred', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
+                    sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
+                    sh 'docker tag my-node-app:1.0 bashidkk/my-node-app:1.0'
+                    sh 'docker push bashidkk/my-node-app:1.0'
+                    sh 'docker logout'
+                }
+            }
         }
     }
 }
