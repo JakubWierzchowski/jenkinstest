@@ -7,9 +7,15 @@ pipeline {
                 echo 'Building..'
             }
         }
-        stage('Test') {
+       stage('Test') {
             steps {
-                echo 'Testing..'
+                script {
+                    docker.image('node:14').inside {
+                  
+                        sh 'npm test'
+                    }
+                }
+                echo 'Success'
             }
         }
         stage('Deploy') {
