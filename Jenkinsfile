@@ -35,4 +35,16 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline zakończony sukcesem!'
+        }
+        failure {
+            echo 'Pipeline zakończony niepowodzeniem.'
+        }
+    }
 }
